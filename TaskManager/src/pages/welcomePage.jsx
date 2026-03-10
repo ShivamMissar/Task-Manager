@@ -3,7 +3,7 @@
 
 
 
-function WelcomePage(onStartAdding)
+function WelcomePage({onStartAdding})
 {
     return(
         <div>
@@ -11,9 +11,12 @@ function WelcomePage(onStartAdding)
             <p>This site is about.....</p>
 
 
-            <button onClick={startAddingTasks}>
+            <button onClick={onStartAdding}>
                 Start managing your tasks!
             </button>
         </div>
     )
 }
+
+
+export default WelcomePage;
