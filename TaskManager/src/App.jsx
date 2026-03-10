@@ -72,28 +72,47 @@ function App() {
     return <WelcomePage onStartAdding={() => setStartAddingTasks(true)}/>
   }
 
-  return (
-    <div>
-      <UserAddTasks
-       userValue={userInput}
-       onChange = {((e)=>setUserInput(e.target.value))}
-       placeholder = "Add a new task"
-      />
-      <button onClick={addTask}>Add a new task</button>
+ return (
+  <div className="min-h-screen px-6 py-12"
+    style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f64f59 100%)' }}
+  >
+    <div className="max-w-md mx-auto flex flex-col gap-6">
 
+      {/* Header */}
+      <h1 className="text-3xl font-extrabold text-white text-center">My Tasks</h1>
 
-      {tasks.map((task) => (
+      {/* Input area */}
+      <div className="flex gap-3">
+        <UserAddTasks
+          userValue={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          placeholder="Add a new task..."
+          className="flex-1 px-4 py-3 rounded-full outline-none text-gray-800"
+        />
+        <button
+          onClick={addTask}
+          className="bg-white text-purple-600 font-bold px-6 py-3 rounded-full hover:bg-purple-50 transition-colors"
+        >
+          Add
+        </button>
+      </div>
 
-        <div key={task.id}>
-          <p className={getTaskClass(task.completed)}>{task.title}</p>
-          <button onClick={() => toggleComplete(task.id)}>Complete Task</button>
-          <button onClick={() => deleteTask(task.id)}>Remove Task</button>
-        </div>
-      ))}
-        
-      
+      {/* Task list */}
+      <div className="flex flex-col gap-3">
+        {tasks.map((task) => (
+          <div key={task.id} className="bg-white rounded-2xl px-6 py-4 flex items-center justify-between shadow-md">
+            <p className={getTaskClass(task.completed)}>{task.title}</p>
+            <div className="flex gap-2">
+              <button onClick={() => toggleComplete(task.id)} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-1 rounded-full">✓</button>
+              <button onClick={() => deleteTask(task.id)} className="text-xs bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-full">✕</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
-  )
+  </div>
+      )
 }
 
 export default App
