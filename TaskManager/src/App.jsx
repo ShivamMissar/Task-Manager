@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import WelcomePage from './pages/welcomePage';
+
+
+
 
 function App() {
 
@@ -6,41 +10,17 @@ function App() {
   const [userInput, setUserInput] = useState('');
 
 
+  const [startAddingTasks, setSetStartAddingTasks] = useState(false); 
 
-  function addTask()
-  {
-    
-    if(userInput === '') return; 
-
-      const newTask = {
-        id: Date.now(),
-        title: userInput, 
-        completed: false
-      }
-
-      setTasks([...tasks, newTask]); 
-      setUserInput('');
+  
+  if(!startAddingTasks){
+    <WelcomePage onStartAdding={() => setSetStartAddingTasks(true)}/>
   }
 
-  function toggleComplete(id)
-  {
-    setTasks(tasks.map((task) => {
-      if(task.id === id)
-      {
-        return{...task, completed: !task.completed}
-      }
-      return task;
-    }))
-  }
 
-  function deleteTask(id)
-  {
-    setTasks(tasks.filter((task) => task.id !== id));
-  }
   
   return (
     <div>
-
     </div>
   )
 }
