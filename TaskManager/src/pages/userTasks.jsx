@@ -6,7 +6,8 @@ function UserAddTasks({ userValue, onChange }) {
     <input
       value={userValue}
       onChange={onChange}
-      placeholder="Add a new task..."
+      placeholder="Add a new task + "
+     className="px-6 py-4 w-full"
     />
   )
 }

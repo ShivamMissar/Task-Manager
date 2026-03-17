@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import WelcomePage from './pages/welcomePage';
 import UserAddTasks from './pages/userTasks';
 
+
 function App() {
 
   const [tasks, setTasks] = useState(() => {
@@ -16,6 +17,10 @@ function App() {
   const [userInput, setUserInput] = useState('');
   const [startAddingTasks, setStartAddingTasks] = useState(false);
   const [applyFilter, setFilter] = useState('All');
+  const [editingId, setEditingId] = useState(null);
+  const [editInput, setEditInput] = useState('');
+  const [priority, setPriority] = useState('Low');
+  const [dueDate, setDueDate] = useState('');
 
   useEffect(() => {
 
@@ -24,14 +29,44 @@ function App() {
   }, [tasks])
 
 
+  function startEdit(id, title, priority, dueFor) {
+    setEditingId(id);
+    setEditInput(title);
+    setPriority(priority);
+    setDueDate(dueFor);
+
+  }
+
+  function saveEdit() {
+    const updateTask = tasks.map(task =>
+
+      task.id === editingId ? { ...task, title: editInput, priority: priority, due: dueDate } : task
+    );
+
+    setTasks(updateTask);
+    setEditInput('');
+    setPriority('Low');
+    setDueDate('');
+    setEditingId(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditInput('');
+  }
+
+
   function addTask() {
 
     if (userInput === '') return;
 
+
     const newTask = {
       id: Date.now(),
       title: userInput,
-      completed: false
+      priority: priority,
+      completed: false,
+      due: dueDate
     }
 
     setTasks([...tasks, newTask]);
@@ -68,6 +103,19 @@ function App() {
       return BASE + 'bg-white text-purple-600'
     }
     return BASE + 'bg-white/20 text-white hover:bg-white/30'
+  }
+
+  function getPriorityClass(priority) {
+    const BASE = ''
+    if (priority === "High") {
+      return "bg-red-100 text-red-700"
+    }
+    else if (priority === "Medium") {
+      return "bg-yellow-100 text-yellow-700"
+    }
+    else {
+      return 'bg-blue-100 text-blue-700';
+    }
   }
 
   if (!startAddingTasks) {
@@ -125,16 +173,72 @@ function App() {
 
 
           {filteredTask.map((task) => (
-            <div key={task.id} className="bg-white rounded-2xl px-6 py-4 flex items-center justify-between shadow-md">
-              <p className={getTaskClass(task.completed)}>{task.title}</p>
-              <div className="flex gap-2">
-                <button onClick={() => toggleComplete(task.id)} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-1 rounded-full">✓</button>
-                <button onClick={() => deleteTask(task.id)} className="text-xs bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-full">✕</button>
+            <div key={task.id} className="bg-white rounded-2xl px-6 py-4 flex-col shadow-md">
+              {editingId === task.id ? (
+                <>
+                  <label>Task Name:</label>
+                  <input
+                    value={editInput}
+                    onChange={(e) => setEditInput(e.target.value)}
+                    className="border px-2 py-2 rounded w-full border-none"
+                  />
+                  <label>Priority</label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="bg-white text-gray-800 px-4 py-3 rounded-full"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                  <br />
+
+
+                  <label className='py-1'>Due for?</label>
+
+                  <input
+                    type='Date'
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="border px-2 py-2 rounded w-full border-none"
+                  />
+                </>
+
+              ) : (
+                <div>
+                  <div className="flex justify-between items-center">
+                    <p className={`${getTaskClass(task.completed)} text-lg font-semibold`}>Task Name: {task.title}</p>
+                    <span className={`${getPriorityClass(task.priority)} text-xs font-semibold px-3 py-1 rounded-full`}>
+                      {task.priority}
+                    </span>
+                  </div>
+                  <p className='text-sm text-gray-400'>Due Date: {task.due}</p>
+                </div>
+              )}
+
+
+              <div className="flex py-4 gap-5">
+                <button onClick={() => toggleComplete(task.id)} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-2 rounded-full">Complete</button>
+                {editingId === task.id ? (
+                  <>
+
+                    <button onClick={saveEdit} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-1 rounded-full" >Save</button>
+                    <button onClick={cancelEdit} className="text-xs bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-full">Cancel Save</button>
+
+                  </>
+
+
+                ) : <button onClick={() => startEdit(task.id, task.title)} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-1 rounded-full">Edit Task</button>
+                }
+
+
+
+                <button onClick={() => deleteTask(task.id)} className="text-xs bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-full">Delete</button>
               </div>
             </div>
           ))}
         </div>
-
       </div>
     </div>
   )
