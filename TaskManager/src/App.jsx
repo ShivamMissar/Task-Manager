@@ -123,6 +123,9 @@ function App() {
   }
 
   let filteredTask = tasks;
+  let completedCount = tasks.filter((task) => task.completed == true).length;
+  let totalCount = tasks.length;
+  let percentage = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
   if (applyFilter === 'Active') {
     filteredTask = tasks.filter((task) => task.completed === false)
@@ -170,7 +173,11 @@ function App() {
 
         {/* Task list */}
         <div className="flex flex-col gap-3">
-
+          <div className='bg-gray-200 rounded-full h-2 m-6'>
+           <div style={{ width: `${percentage}%` }} className="bg-purple-500 rounded-full h-2">
+            </div>
+            <p className="text-sm text-white mt-1"> {completedCount} of {totalCount} tasks completed</p>
+          </div>
 
           {filteredTask.map((task) => (
             <div key={task.id} className="bg-white rounded-2xl px-6 py-4 flex-col shadow-md">
@@ -231,9 +238,6 @@ function App() {
 
                 ) : <button onClick={() => startEdit(task.id, task.title)} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-1 rounded-full">Edit Task</button>
                 }
-
-
-
                 <button onClick={() => deleteTask(task.id)} className="text-xs bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-full">Delete</button>
               </div>
             </div>
