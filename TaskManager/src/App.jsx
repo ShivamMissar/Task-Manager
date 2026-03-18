@@ -1,128 +1,32 @@
-import { useState, useEffect } from 'react'
+
 import WelcomePage from './pages/welcomePage';
 import UserAddTasks from './pages/userTasks';
+import { useTasks } from './hooks/useTasks';
+import { getFilterClass, getPriorityClass,getTaskClass } from './utils/helpers';
+
 
 
 function App() {
 
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem('task');
-
-    if (saved) {
-      return JSON.parse(saved);
-    }
-
-    return []
-  });
-  const [userInput, setUserInput] = useState('');
-  const [startAddingTasks, setStartAddingTasks] = useState(false);
-  const [applyFilter, setFilter] = useState('All');
-  const [editingId, setEditingId] = useState(null);
-  const [editInput, setEditInput] = useState('');
-  const [priority, setPriority] = useState('Low');
-  const [dueDate, setDueDate] = useState('');
-
-  useEffect(() => {
-
-    localStorage.setItem('task', JSON.stringify(tasks));
-
-  }, [tasks])
-
-
-  function startEdit(id, title, priority, dueFor) {
-    setEditingId(id);
-    setEditInput(title);
-    setPriority(priority);
-    setDueDate(dueFor);
-
-  }
-
-  function saveEdit() {
-    const updateTask = tasks.map(task =>
-
-      task.id === editingId ? { ...task, title: editInput, priority: priority, due: dueDate } : task
-    );
-
-    setTasks(updateTask);
-    setEditInput('');
-    setPriority('Low');
-    setDueDate('');
-    setEditingId(null);
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditInput('');
-  }
-
-
-  function addTask() {
-
-    if (userInput === '') return;
-
-
-    const newTask = {
-      id: Date.now(),
-      title: userInput,
-      priority: priority,
-      completed: false,
-      due: dueDate
-    }
-
-    setTasks([...tasks, newTask]);
-    setUserInput('');
-  }
-
-
-  function toggleComplete(id) {
-    setTasks(tasks.map((task) => {
-      console.log('completed');
-      if (task.id === id) {
-        return { ...task, completed: !task.completed }
-      }
-      return task;
-    }))
-  }
-
-
-  function deleteTask(id) {
-    setTasks(tasks.filter((task) => task.id !== id));
-  }
-
-  function getTaskClass(completed) {
-    if (completed) {
-      return 'line-through text-gray-400'
-    }
-    return ''
-  }
-
-
-  function getFilterClass(filter) {
-    const BASE = 'px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 '
-    if (applyFilter === filter) {
-      return BASE + 'bg-white text-purple-600'
-    }
-    return BASE + 'bg-white/20 text-white hover:bg-white/30'
-  }
-
-  function getPriorityClass(priority) {
-    const BASE = ''
-    if (priority === "High") {
-      return "bg-red-100 text-red-700"
-    }
-    else if (priority === "Medium") {
-      return "bg-yellow-100 text-yellow-700"
-    }
-    else {
-      return 'bg-blue-100 text-blue-700';
-    }
-  }
+  const {
+    tasks, userInput, setUserInput,
+    startAddingTasks, setStartAddingTasks,
+    applyFilter, setFilter,
+    editingId, editInput, setEditInput,
+    priority, setPriority,
+    dueDate, setDueDate,
+    sortBy, setSortBy,
+    startEdit, saveEdit, cancelEdit,
+    addTask, toggleComplete, deleteTask,
+    convertDate
+  } = useTasks();
 
   if (!startAddingTasks) {
     return <WelcomePage onStartAdding={() => setStartAddingTasks(true)} />
   }
 
   let filteredTask = tasks;
+
   let completedCount = tasks.filter((task) => task.completed == true).length;
   let totalCount = tasks.length;
   let percentage = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
@@ -135,6 +39,29 @@ function App() {
   if (applyFilter === 'Completed') {
     filteredTask = tasks.filter((task) => task.completed === true);
   }
+
+const priorityOrder = { High: 0, Medium: 1, Low: 2 };
+
+
+if(sortBy === 'priority')
+{
+filteredTask = filteredTask.sort((a, b) => 
+  priorityOrder[a.priority] - priorityOrder[b.priority]
+);
+}
+
+if(sortBy === 'due')
+{
+  filteredTask = filteredTask.sort((a,b) => 
+  a.due.localeCompare(b.due));
+}
+if(sortBy === 'added')
+{
+  filteredTask = filteredTask.sort((a,b) =>
+    a.id - b.id); 
+}
+
+
 
 
 
@@ -166,13 +93,27 @@ function App() {
 
         <div className='flex gap-2 justify-center'>
           {['All', 'Active', 'Completed'].map((filter) => (
-            <button key={filter} onClick={() => setFilter(filter)} className={getFilterClass(filter)}>{filter}</button>
+            <button key={filter} onClick={() => setFilter(filter)} className={getFilterClass(filter,applyFilter)}>{filter}</button>
           ))}
+
+          {/* Select for Priority*/}
+                <div>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-white text-gray-800 px-4 py-3 rounded-full"
+                  >
+                    <option value="priority">Priority</option>
+                    <option value="due">Due For</option>
+                    <option value="added">Added</option>
+                  </select>
+                </div>
         </div>
 
 
         {/* Task list */}
         <div className="flex flex-col gap-3">
+          
           <div className='bg-gray-200 rounded-full h-2 m-6'>
            <div style={{ width: `${percentage}%` }} className="bg-purple-500 rounded-full h-2">
             </div>
@@ -203,7 +144,6 @@ function App() {
 
 
                   <label className='py-1'>Due for?</label>
-
                   <input
                     type='Date'
                     value={dueDate}
@@ -214,13 +154,15 @@ function App() {
 
               ) : (
                 <div>
+
+                
                   <div className="flex justify-between items-center">
                     <p className={`${getTaskClass(task.completed)} text-lg font-semibold`}>Task Name: {task.title}</p>
                     <span className={`${getPriorityClass(task.priority)} text-xs font-semibold px-3 py-1 rounded-full`}>
                       {task.priority}
                     </span>
                   </div>
-                  <p className='text-sm text-gray-400'>Due Date: {task.due}</p>
+                  <p className='text-sm text-gray-400'>Due Date: {convertDate(task.due)}</p>
                 </div>
               )}
 
@@ -236,7 +178,7 @@ function App() {
                   </>
 
 
-                ) : <button onClick={() => startEdit(task.id, task.title)} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-1 rounded-full">Edit Task</button>
+                ) : <button onClick={() => startEdit(task.id, task.title, task.priority, task.due)} className="text-xs bg-green-500 hover:bg-green-400 text-white px-3 py-1 rounded-full">Edit Task</button>
                 }
                 <button onClick={() => deleteTask(task.id)} className="text-xs bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-full">Delete</button>
               </div>
